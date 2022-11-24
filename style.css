@@ -1,0 +1,244 @@
+
+
+body {
+  margin: 0;
+}
+
+/* 背景カラーが変化 */
+.colorchange_bg {
+  height: 250px;
+  margin: 30px 0;
+  animation: colorchange-color 10s infinite;
+}
+
+@keyframes colorchange-color {
+  0%, 100% {
+    background-color: #6bb6ff;
+  }
+  25% {
+    background-color: #1abc9c;
+  }
+  50% {
+    background-color: #9b59b6;
+  }
+  75% {
+    background-color: #85e3ec;
+  }
+}
+
+#output {
+  width: 500px;
+}
+
+#myimg {
+  height: 200px;
+  width: 200px;
+  border: 2px black solid;
+}
+
+/* 一番上の見た目 */
+.line_title {
+  background: #273246;
+  padding: 10px;
+  text-align: center;
+  font-size: 150%;
+  color: #ffffff;
+}
+
+/* メッセージボックスの見た目 */
+
+#container {
+  width: 100%;
+  margin: 0;
+  display: flex;
+}
+
+.talk {
+  width: 80%;
+}
+
+.image_gen {
+  width: 20%;
+  text-align: center;
+}
+
+/* ユーザー名 */
+.name {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* 操作画面全体のdiv */
+.text_send {
+  display: flex;
+
+  width: 100%;
+  height: 30px;
+}
+
+/* テキスト入力 */
+#text {
+  width: 100%;
+  margin-left: 3px;
+}
+
+/* 翻訳ボタン */
+#translate {
+  margin-left: 3px;
+}
+
+/* 送信ボタン */
+#send {
+  margin-left: 3px;
+  width: 5%;
+}
+
+
+ /* メッセージ全般のスタイル */
+  .bms_message {
+    margin: 0px;
+    padding: 0 14px; /* 吹き出しがタイムラインの側面にくっつかないように隙間を空ける */
+    font-size: 16px;
+    word-wrap: break-word; /* 吹き出し内で自動で改行 */
+    white-space: normal; /*指定widthに合わせて、文字を自動的に改行*/
+  }
+
+  /* メッセージ１（左側） */
+  .bms_left {
+    float: left;/*吹き出しをbms_messagesに対して左寄せ*/
+    line-height: 1.3em;
+  }
+
+  .bms_right {
+    float: right;/*吹き出しをbms_messagesに対して右寄せ*/
+    line-height: 1.3em;
+  }
+  /* 回り込みを解除 */
+  .bms_clear {
+      clear: both; /* 左メッセージと右メッセージの回り込み(float)の効果の干渉を防ぐために必要（これが無いと、自分より下のメッセージにfloatが影響する） */
+
+  }
+
+  .message_frame {
+    margin-left: 10px;
+  }
+
+  .message_frame_right {
+    margin-left: 10px;
+    text-align: right;
+  }
+
+  .message_style1 {
+    font-size: 80%;
+    color: #ffffff;
+    margin: 0;
+    text-align: left;
+  }
+
+  .message_style2 {
+    margin: 0; display: inline-block;
+    position: relative;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #EDF1EE;  /* 吹き出し背景色 相手 */
+    color: #000000;   /* トーク文字色 相手 */
+    font-size: 11px;  /* トーク文字サイズ 相手 */
+    text-align: left;
+  }
+
+  .message_style2::after {
+    content: '';
+    position: absolute;
+    display: block;
+    width: 0;
+    height: 0;
+    left: -10px;
+    top: 3px;
+    border-right: 20px solid #EDF1EE;  /* 吹き出し枠線色 相手 */
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent; 
+    transform: rotate(35deg); -webkit-transform: rotate(35deg);
+  }
+
+  .message_frame {
+    display: flex;
+    margin-bottom: 20px;
+  }
+
+  .message_frame:hover {
+    cursor: pointer;
+  }
+
+  .btn {
+    margin-left: 3px;
+    visibility:hidden;
+  }
+
+  .message_frame:hover .btn {
+    visibility:visible;
+    animation-name: fade;
+    animation-duration: 1s;
+  } 
+
+  @keyframes fade{
+    0%{
+      opacity: 0;
+    }
+    100%{
+      opacity: 1;
+    }
+  }
+
+  /* 自分のチャットは右寄せ */
+  .rightside {
+    text-align: right;
+    margin-left: 3px;
+    margin-right: 0;
+    display: flex;
+  justify-content: flex-end;
+  }
+
+  /* 投稿時間 */
+  .time {
+    display: inline-block;
+    text-align: left;
+    font-size: 8px;
+    align-items: flex-end;
+    margin-top: 40px;
+    margin-bottom: 0;
+  }
+
+
+/* チャットアイコン */
+  .icon {
+    width: 50px;
+    background-color: white;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+
+  /* 画面右のデザイン */
+
+  /* imagename */
+  .imagename, #namebox, #extlab {
+    font-size: 12px;
+  }
+
+
+/* スマホデザイン */
+
+@media screen and (max-width:480px){
+  #output {
+    height: 1000px;
+  }
+
+
+  .image_gen, .time {
+    display: none;
+  }
+
+  .talk {
+    width: 100%;
+  }
+
+}

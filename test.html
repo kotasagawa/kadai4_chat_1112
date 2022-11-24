@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://kit.fontawesome.com/4199144150.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="style.css">
+  <title>LINE風アプリ</title>
+</head>
+<body class="colorchange_bg">
+
+<div class="context">
+  
+
+<!-- コンテンツ表示画面 -->
+
+<!-- JQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- JQuery -->
+<div class="line_title">
+  LINE風チャット
+</div>
+
+<!-- コンテンツ左側 -->
+<div id="container">
+  <div class="talk"> 
+      <div class="bms_message bms-left">
+
+            <!-- トークの表示 -->
+            <div id="output" style="overflow:auto; height:500px; width:100%"></div>
+
+        </div>
+        <!-- <img id="preview" src="https://firebasestorage.googleapis.com/v0/b/dev245-6e0bc.appspot.com/o/Images%2F667.png?alt=media&token=13aee0b8-675b-4af5-aa75-3adddefd173a" alt=""> -->
+        <div class="message1-clear"></div>
+
+        <div class="name"> 名前：<input type="text" id="uname" disabled> </div>
+        <div class="text_send">
+            <!-- 日本語→英語にしたいときに入力するエリア -->
+            <textarea name="japanese" id="jatext" placeholder="翻訳：日本語から英語" cols="30" rows="10"></textarea>
+            <!-- 翻訳ボタン -->
+            <input id="translate" type="button" value="翻訳" onclick="output()" />
+            <!-- 通常の入力エリア＆日→英翻訳エリア -->
+            <textarea id="text" cols="30" rows="10"></textarea>
+            <!-- 送信ボタン -->
+            <button id="send"><i class="fa-regular fa-paper-plane"></i></button>
+        </div>
+  </div> 
+
+   <!-- コンテンツ右側 -->
+   <div class="image_gen">
+        <label class="imagename">Image Name</label><input type="text" id="namebox"><label id="extlab"></label><br>
+        <img id="myimg" src="" alt=""><label id="upprogress"></label> <br><br>
+      
+        <button id="selbtn">Select Image</button>
+        <button id="upbtn">Upload Image</button>
+        <button id="downbtn">Retrieve Image</button>
+  </div>
+
+</div>
+
+<!-- オーディオ -->
+<audio id="chat_audio">
+  <source src="audio/sound1.mp3" type="audio/mp3">
+</audio>
+
+
+<!--/ コンテンツ表示画面 -->
+
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+
+
+//ライブラリの中のinitializeAppという関数を使えるようにする。これはデフォルト
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
+
+      // 貼り付ける場所
+      import { getDatabase, ref, push, set, child, get, update, onChildAdded, remove,onChildRemoved, serverTimestamp, onValue, query, orderByChild, } 
+      from "https://www.gstatic.com/firebasejs/9.14.0/firebase-database.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+
+//APIキーが必要
+
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig); //firebaseConfigの変数でアクセスするよ
+  const db = getDatabase(app); //RealtimeDatabaseを使うよ
+  const dbRef = ref(db, "test"); //RealtimeDatabaseのchatという階層にデータを入れるよ
+  //chat/memoなど階層作れる
+
+    // promptでダイアログで文字を入力させる(alertみたいなもん)
+    var myName = prompt("Enter your name");
+
+$("#uname").val(myName);
+
+  import {getStorage, ref as sRef, uploadBytesResumable, getDownloadURL }
+    from "https://www.gstatic.com/firebasejs/9.14.0/firebase-storage.js";
+
+   //Cloud Firestore Database
+   import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      collection,
+      addDoc
+    }
+    from "https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js";
+
+    const clouddb = getFirestore();
+
+
+    var files = [];
+    var reader = new FileReader();
+
+    var namebox = document.getElementById('namebox');
+    var extlab = document.getElementById('extlab');
+    var myimg = document.getElementById('myimg');
+    var proglab = document.getElementById('upprogress');
+    var SelBtn = document.getElementById('selbtn');
+    var UpBtn = document.getElementById('upbtn');
+    var DownBtn = document.getElementById('downbtn');
+    var message_frame = document.getElementsByClassName('message_frame');
+    var btn = document.getElementsByClassName('btn');
+
+    var input = document.createElement('input');
+    input.type = 'file';
+
+    input.onchange = (e) =>{
+      files = e.target.files;
+
+      // 拡張子を取得
+      let extention = GetFileExt(files[0]);
+      // ファイル名を取得
+      let name = GetFileName(files[0]);
+
+      // ファイル名の値 = nameとする
+      namebox.value = name;
+
+      // 拡張子セクションに拡張子名を表示させる
+      extlab.innerHTML = extention;
+
+      reader.readAsDataURL(files[0]);
+    };
+
+    reader.onload = function () {
+      myimg.src = reader.result;
+    };
+
+  // -----------------画像選択、表示-------------------------
+    
+  SelBtn.onclick = function() {
+      input.click();
+    }
+
+    //指定ファイルの拡張子を取得
+    function GetFileExt(file) {
+      var temp = file.name.split('.');
+
+      //tempをslice
+      var ext = temp.slice((temp.length-1), (temp.length));
+      return "." + ext[0];
+    }
+
+    function GetFileName(file){
+      var temp = file.name.split('.');
+
+      var frame = temp.slice(0, -1).join(".");
+      return frame;
+    }
+
+  // アップロード ----------------------------------
+
+  async function UploadProcess() {
+    var ImgToUpload = files[0];
+
+    var ImgName = namebox.value + extlab.innerHTML;
+
+    const metaData = {
+      contentType: ImgToUpload.type
+    }
+
+    const storage = getStorage();
+
+    const storageRef = sRef(storage, "Images/"+ImgName);
+
+    const UploadTask = uploadBytesResumable(storageRef, ImgToUpload, metaData);
+
+    UploadTask.on('state-changed', (snapshot)=>{
+          var progess = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          proglab.innerHTML = "Upload" + progess + "%";
+
+        },
+        (error) =>{ 
+          alert("error: image not uploaded!");
+        },
+        ()=>{
+              getDownloadURL(UploadTask.snapshot.ref).then((downloadURL)=>{
+                console.log(downloadURL)
+                const uname = $("#uname").val();
+              // SaveURLtoFirestore(downloadURL);
+              // const send_image = '<img class="prof_img" src="'+downloadURL+'">'
+              // $("#output").append(send_image);
+
+              const profile = data.val(); 
+                profile = {
+                  uimage: downloadURL,
+                  uname: uname,
+                };
+                const newPostRef = push(dbRef);
+                set(newPostRef,profile); 
+
+              });
+            }
+    );
+
+   
+
+  }//消さない
+
+// -------------------------------------------------------------
+    function SaveURLtoRealtimDB(URL) {
+      var name = namebox.value;
+      var ext = extlab.innerHTML;
+
+      set(ref(realdb, "ImagesLinks/"+name),{
+        ImageName: (name+ext),
+        ImgUrl: URL
+      });
+    }
+
+    function GetUrlfromRealtimDB() {
+      var name = namebox.value;
+
+      var dbRef = ref(realdb);
+
+      get(child(dbRef, "ImagesLinks/"+name)).then((snapshot)=>{
+        if(snapshot.exists()){
+          myimg.src = snapshot.val().ImgUrl;
+        }
+      })
+    }
+
+
+  UpBtn.onclick = UploadProcess;
+  DownBtn.onclick = GetUrlfromRealtimDB;
+
+ 
+  
+//  -----------------------------送信処理------------------------------------------
+  $("#send").on("click", function() { //#sendをクリックしたらfunctionが処理される
+    
+    const uname = $("#uname").val();
+    const text = $("#text").val();
+
+    const name = myName;
+
+    //送信日時を表示する
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = now.getMonth();
+    var date = now.getDate();
+    // var w = now.getDay();
+    // var week = ['月','火','水','木','金','土','日'];
+    var hours = now.getHours();
+    var minutes = ("0"+now.getMinutes()).slice(-2); //０を付けて2桁にする。下2桁表示
+    var seconds = now.getSeconds();
+    const time = year + '/' + month + '/'+ date + ' ' +  hours + ":" + minutes + ":" + seconds;
+
+    const msg = {
+      uname : uname,
+      text : text,
+      time: time,
+      name :name
+    };
+ 
+
+    // 送信したら音を出す
+    $(chat_audio).get(0).play();
+
+    const newPostRef = push(dbRef);//ユニークキーを生成、dbへ送る
+    set(newPostRef,msg); //msgを送信
+    //newPostRefではなく、set(dbRef,msg)とするとchat/memoなどの階層に記録される（56行目と関連）
+
+    $('#uname').val("");//入力したら入力欄を空欄にする
+    $('#text').val("");//入力したら入力欄を空欄にする
+    $('#uname').focus(); //カーソルを名前欄に戻す
+    $("#uname").val(myName);
+
+  });
+
+  
+  // ------------------送信処理終わり------------------------------------------
+
+
+  // ------------------受信処理------------------------------------------
+  //dbRef(chat)を監視する
+  onChildAdded(dbRef, function(data) {
+    const msg = data.val(); //受信したデータを変数に代入
+    const key = data.key; //受信したデータを変数に代入
+    
+
+    if(data.val().uname === myName) {
+
+    let h = `
+    <div class="message_frame rightside">
+      <div>
+        <img class="icon" src="img/me.jpg" alt="icon">
+      </div>
+      <div>
+          <p class="message_style1">${msg.uname}</p>
+          <p class="message_style2">${msg.text}</p>
+      </div>
+      <p class="time">${msg.time}</p>
+      <button id="'+k+'" class="btn">削除</button>
+      </div>
+      `;
+
+      $("#output").append(h);
+            
+    } else {
+      let h = `
+    <div class="message_frame">
+      <div>
+        <img class="icon" src="img/you.jpg" alt="icon">
+      </div>
+      <div>
+          <p class="message_style1">${msg.uname}</p>
+          <p class="message_style2">${msg.text}</p>
+      </div>
+      <p class="time">${msg.time}</p>
+      <button id="'+k+'" class="btn">削除</button>
+      </div>
+      `;
+
+      $("#output").append(h);
+    }
+
+
+    const output = document.getElementById('output');
+    output.scrollTo(0, output.scrollHeight);
+
+    //削除処理
+    $(document).on("click", ".btn", function () {
+            remove(ref(db, "test/" + data.key));
+            while(message_frame.lastChild){
+            message_frame.removeChild(message_frame.lastChild);
+}
+            
+        });
+
+  });
+
+  // ------------------受信処理終わり------------------------------------------
+
+</script>
+
+
+<script src="main.js"></script>
+</body>
+</html>
